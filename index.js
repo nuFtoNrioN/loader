@@ -3,8 +3,8 @@ const axios = require('axios');
 const crypto = require('crypto');
 const app = express();
 
-const SECRET_SCRIPT_URL = "https://raw.theimmortalbug.workers.dev/QYhPqGsxsbF2iA08ZPec";
-const SECRET_KEY = "KeySieuCapBiMatCuaNoir";
+const SECRET_SCRIPT_URL = process.env.SECRET_SCRIPT_URL;
+const SECRET_KEY = process.env.SECRET_KEY;
 
 app.get('/loader', async (req, res) => {
     const userAgent = req.headers['user-agent'] || '';
