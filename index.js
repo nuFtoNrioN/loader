@@ -4,9 +4,9 @@ const crypto = require('crypto');
 const app = express();
 
 const SECRET_SCRIPT_URL = "https://raw.theimmortalbug.workers.dev/QYhPqGsxsbF2iA08ZPec";
-const SECRET_KEY = "KEY_BAM_MAT_KHONG_CHO_AI_BIET";
+const SECRET_KEY = "KeySieuCapBiMatCuaNoir";
 
-app.get('/get-script', async (req, res) => {
+app.get('/loader', async (req, res) => {
     const userAgent = req.headers['user-agent'] || '';
     const clientAuth = req.headers['authorization'];
     const clientTime = req.headers['x-timestamp'];
