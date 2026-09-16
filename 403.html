@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NOIRHUB // ACCESS_RESTRICTED</title>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background-color: #030303;
+            color: #d1d5db;
+            font-family: 'JetBrains Mono', monospace;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+            position: relative;
+        }
+
+        body::before {
+            content: " ";
+            display: block;
+            position: absolute;
+            top: 0; left: 0; bottom: 0; right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            z-index: 100;
+            background-size: 100% 3px, 6px 100%;
+            pointer-events: none;
+        }
+
+        .card {
+            background: #0a0a0c;
+            border: 2px solid #ff2a2a;
+            padding: 20px;
+            max-width: 440px;
+            width: 94%;
+            box-shadow: 8px 8px 0px #ff2a2a;
+            position: relative;
+            z-index: 10;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #222;
+            padding-bottom: 10px;
+            margin-bottom: 14px;
+        }
+
+        .brand { font-size: 13px; font-weight: 800; color: #fff; }
+        .status-tag { background: #ff2a2a; color: #000; font-size: 10px; font-weight: 800; padding: 2px 6px; }
+
+        h1 { font-size: 20px; font-weight: 800; color: #ff2a2a; margin-bottom: 6px; }
+        p.desc { color: #888; font-size: 11px; line-height: 1.4; margin-bottom: 14px; }
+
+        .game-menu {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 12px;
+        }
+
+        .menu-btn {
+            flex: 1;
+            background: #111;
+            color: #888;
+            border: 1px solid #333;
+            padding: 8px 2px;
+            font-family: inherit;
+            font-size: 10px;
+            font-weight: 800;
+            cursor: pointer;
+            text-transform: uppercase;
+        }
+
+        .menu-btn.active {
+            background: #ff2a2a;
+            color: #000;
+            border-color: #ff2a2a;
+        }
+
+        #game-wrapper {
+            border: 2px solid #222;
+            background: #000;
+            position: relative;
+            height: 200px;
+            margin-bottom: 14px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        canvas { display: block; width: 100%; height: 100%; }
+
+        .cups-stage {
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+
+        .cup {
+            width: 54px;
+            height: 64px;
+            background: #111;
+            border: 2px solid #ff2a2a;
+            position: absolute;
+            bottom: 30px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: 800;
+            font-size: 15px;
+            color: #fff;
+            cursor: pointer;
+            transition: top 0.3s ease, left 0.15s linear, transform 0.2s ease;
+        }
+
+        .cup.open {
+            transform: translateY(-30px);
+        }
+
+        .overlay-screen {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            z-index: 20;
+        }
+
+        .btn-restart {
+            background: #ff2a2a;
+            color: #000;
+            border: none;
+            padding: 8px 16px;
+            font-family: inherit;
+            font-size: 11px;
+            font-weight: 800;
+            cursor: pointer;
+            box-shadow: 3px 3px 0px #fff;
+        }
+
+        .touch-controls {
+            position: absolute;
+            bottom: 6px;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            padding: 0 10px;
+            pointer-events: none;
+            z-index: 15;
+        }
+
+        .ctrl-btn {
+            background: rgba(255, 42, 42, 0.3);
+            border: 1px solid #ff2a2a;
+            color: #fff;
+            width: 48px;
+            height: 36px;
+            font-weight: bold;
+            pointer-events: auto;
+            cursor: pointer;
+        }
+
+        .footer {
+            font-size: 10px;
+            color: #555;
+            display: flex;
+            justify-content: space-between;
+            border-top: 1px solid #151515;
+            padding-top: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <div class="header">
+            <span class="brand">NOIRHUB // ARCADE</span>
+            <span class="status-tag">HTTP 403</span>
+        </div>
+
+        <h1>ACCESS RESTRICTED</h1>
+        <p class="desc">Trình duyệt bị chặn! Chọn 1 trò dưới đây chơi đỡ buồn nhé:</p>
+
+        <div class="game-menu">
+            <button class="menu-btn active" onclick="switchGame(1)">1. TRÁO CỐC</button>
+            <button class="menu-btn" onclick="switchGame(2)">2. HỨNG LUA</button>
+            <button class="menu-btn" onclick="switchGame(3)">3. FLAPPY</button>
+        </div>
+
+        <div id="game-wrapper">
+            <div id="overlay" class="overlay-screen" style="display: flex;">
+                <h2 id="overlay-title" style="color: #ff2a2a; font-size: 16px;">TRÁO CỐC TÌM R$</h2>
+                <p id="overlay-msg" style="font-size: 11px; text-align: center; color: #aaa; padding: 0 20px;">
+                    Nhớ vị trí R$, xáo trộn xong bấm chọn cốc!
+                </p>
+                <button class="btn-restart" id="start-btn" onclick="startCurrentGame()">[ BẮT ĐẦU ]</button>
+            </div>
+
+            <div id="game1-ui" class="cups-stage" style="display: none;">
+                <div class="cup" id="cup0" onclick="selectCup(0)">?</div>
+                <div class="cup" id="cup1" onclick="selectCup(1)">?</div>
+                <div class="cup" id="cup2" onclick="selectCup(2)">?</div>
+            </div>
+
+            <canvas id="gameCanvas" style="display: none;"></canvas>
+
+            <div id="catch-controls" class="touch-controls" style="display: none;">
+                <button class="ctrl-btn" onmousedown="btnMoveLeft()" ontouchstart="btnMoveLeft()" onmouseup="btnStop()" ontouchend="btnStop()">&lt;</button>
+                <button class="ctrl-btn" onmousedown="btnMoveRight()" ontouchstart="btnMoveRight()" onmouseup="btnStop()" ontouchend="btnStop()">&gt;</button>
+            </div>
+        </div>
+
+        <div class="footer">
+            <span id="status-text">STATUS: READY</span>
+            <span id="extra-info">SCORE: <b id="score" style="color: #fff;">0</b></span>
+        </div>
+    </div>
+
+    <script>
+        let currentGame = 1;
+        let score = 0;
+        let gameLoopId = null;
+
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const overlay = document.getElementById('overlay');
+        const overlayTitle = document.getElementById('overlay-title');
+        const overlayMsg = document.getElementById('overlay-msg');
+        const startBtn = document.getElementById('start-btn');
+        const statusText = document.getElementById('status-text');
+        const extraInfo = document.getElementById('extra-info');
+        const scoreEl = document.getElementById('score');
+
+        canvas.width = 380;
+        canvas.height = 200;
+
+        function switchGame(id) {
+            currentGame = id;
+            score = 0;
+            scoreEl.innerText = score;
+            cancelAnimationFrame(gameLoopId);
+
+            document.querySelectorAll('.menu-btn').forEach((btn, idx) => {
+                btn.classList.toggle('active', idx + 1 === id);
+            });
+
+            document.getElementById('game1-ui').style.display = 'none';
+            document.getElementById('catch-controls').style.display = 'none';
+            canvas.style.display = 'none';
+
+            overlay.style.display = 'flex';
+            startBtn.style.display = 'block';
+
+            if (id === 1) {
+                overlayTitle.innerText = "TRÁO CỐC TÌM R$";
+                overlayMsg.innerText = "Nhớ vị trí R$, xáo trộn xong bấm chọn cốc!";
+            } else if (id === 2) {
+                overlayTitle.innerText = "HỨNG LUA SCRIPT";
+                overlayMsg.innerText = "Hứng 'LUA', né '👾'. Bỏ lỡ LUA hoặc trúng BUG mất 1 mạng!";
+            } else if (id === 3) {
+                overlayTitle.innerText = "FLAPPY 403";
+                overlayMsg.innerText = "Bấm [ BẮT ĐẦU ] rồi CLICK/TOUCH để điều khiển chim bay!";
+            }
+        }
+
+        function startCurrentGame() {
+            if (currentGame === 3) {
+                overlay.style.display = 'none';
+                initFlappyGame();
+                return;
+            }
+
+            startBtn.style.display = 'none';
+            let count = 3;
+            overlayTitle.innerText = count;
+            overlayMsg.innerText = "CHUẨN BỊ...";
+
+            let cd = setInterval(() => {
+                count--;
+                if (count > 0) {
+                    overlayTitle.innerText = count;
+                } else {
+                    clearInterval(cd);
+                    overlay.style.display = 'none';
+                    if (currentGame === 1) runShellGame();
+                    if (currentGame === 2) initCatchGame();
+                }
+            }, 800);
+        }
+
+        let cupSlotPos = [0, 0, 0];
+        let cupState = [0, 1, 2];
+        let targetIndex = 1;
+        let isShuffling = false;
+        let canSelectCup = false;
+
+        function updateCupPositions() {
+            let stageWidth = document.getElementById('game1-ui').clientWidth || 360;
+            let cupWidth = 54;
+            let space = (stageWidth - (cupWidth * 3)) / 4;
+            cupSlotPos = [
+                space,
+                space * 2 + cupWidth,
+                space * 3 + cupWidth * 2
+            ];
+        }
+
+        function runShellGame() {
+            document.getElementById('game1-ui').style.display = 'block';
+            updateCupPositions();
+
+            targetIndex = Math.floor(Math.random() * 3);
+            cupState = [0, 1, 2];
+
+            for (let i = 0; i < 3; i++) {
+                let cup = document.getElementById('cup' + i);
+                cup.style.left = cupSlotPos[i] + 'px';
+                cup.classList.add('open');
+                cup.innerText = (i === targetIndex) ? 'R$' : 'X';
+            }
+
+            statusText.innerText = "GHI NHỚ VỊ TRÍ R$!";
+
+            setTimeout(() => {
+                for (let i = 0; i < 3; i++) {
+                    let cup = document.getElementById('cup' + i);
+                    cup.classList.remove('open');
+                    cup.innerText = '?';
+                }
+                setTimeout(shuffleCups, 500);
+            }, 1500);
+        }
+
+        function shuffleCups() {
+            isShuffling = true;
+            statusText.innerText = "ĐANG XÁO CỐC...";
+            let swaps = 0;
+            let maxSwaps = 18;
+            let speed = 240;
+
+            function doSwap() {
+                if (swaps >= maxSwaps) {
+                    isShuffling = false;
+                    canSelectCup = true;
+                    statusText.innerText = "CHỌN CỐC ĐI BẠN TÔI!";
+                    return;
+                }
+
+                let i = Math.floor(Math.random() * 3);
+                let j = (i + 1 + Math.floor(Math.random() * 2)) % 3;
+
+                let temp = cupState[i];
+                cupState[i] = cupState[j];
+                cupState[j] = temp;
+
+                document.getElementById('cup' + i).style.left = cupSlotPos[cupState[i]] + 'px';
+                document.getElementById('cup' + j).style.left = cupSlotPos[cupState[j]] + 'px';
+
+                swaps++;
+                speed = Math.max(80, speed - 10);
+                setTimeout(doSwap, speed);
+            }
+            doSwap();
+        }
+
+        function selectCup(index) {
+            if (!canSelectCup || isShuffling) return;
+            canSelectCup = false;
+
+            let selectedCup = document.getElementById('cup' + index);
+            selectedCup.classList.add('open');
+
+            if (index === targetIndex) {
+                selectedCup.innerText = 'R$';
+                score += 10;
+                scoreEl.innerText = score;
+                statusText.innerText = "THẮNG RỒI!";
+                setTimeout(() => {
+                    showGameOver("ẢO THẾ NHỜ?!", "Chắc ăn may thôi chứ mắt muỗi thế sao nhìn kịp. Dám làm ván nữa không?");
+                }, 1000);
+            } else {
+                selectedCup.innerText = 'X';
+                statusText.innerText = "SAI RỒI!";
+                setTimeout(() => {
+                    document.getElementById('cup' + targetIndex).classList.add('open');
+                    document.getElementById('cup' + targetIndex).innerText = 'R$';
+                    setTimeout(() => {
+                        let mockMsgs = [
+                            "Mắt để dưới gót chân à bro? 🐸",
+                            "Tráo có xíu đã quíu tay rồi, gà vãi!",
+                            "Tay nhanh hơn não rồi bạn ơi!",
+                            "Thua cả máy, chơi lại gỡ gạc không?"
+                        ];
+                        let randomMsg = mockMsgs[Math.floor(Math.random() * mockMsgs.length)];
+                        showGameOver("GÀ VÃI LỒ̀NG!", randomMsg);
+                    }, 1200);
+                }, 800);
+            }
+        }
+
+        let basket = { x: 170, width: 44, dir: 0 };
+        let catchItems = [];
+        let lives = 3;
+        let lastSpawn = 0;
+
+        function initCatchGame() {
+            canvas.style.display = 'block';
+            document.getElementById('catch-controls').style.display = 'flex';
+            basket.x = 170;
+            catchItems = [];
+            lives = 3;
+            lastSpawn = Date.now();
+            updateLivesUI();
+            runCatchGame();
+        }
+
+        function updateLivesUI() {
+            extraInfo.innerHTML = `MẠNG: <b style="color:#ff2a2a">${'❤️'.repeat(lives)}</b> | SCORE: <b style="color:#fff">${score}</b>`;
+        }
+
+        function btnMoveLeft() { basket.dir = -5; }
+        function btnMoveRight() { basket.dir = 5; }
+        function btnStop() { basket.dir = 0; }
+
+        window.addEventListener('keydown', e => {
+            if (currentGame === 2) {
+                if (e.code === 'ArrowLeft' || e.code === 'KeyA') basket.dir = -5;
+                if (e.code === 'ArrowRight' || e.code === 'KeyD') basket.dir = 5;
+            }
+        });
+
+        window.addEventListener('keyup', e => {
+            if (currentGame === 2) basket.dir = 0;
+        });
+
+        function runCatchGame() {
+            if (currentGame !== 2) return;
+            ctx.fillStyle = '#000';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            basket.x += basket.dir;
+            if (basket.x < 0) basket.x = 0;
+            if (basket.x > canvas.width - basket.width) basket.x = canvas.width - basket.width;
+
+            ctx.fillStyle = '#ff2a2a';
+            ctx.fillRect(basket.x, canvas.height - 15, basket.width, 10);
+
+            let now = Date.now();
+            if (now - lastSpawn > 800) {
+                let isBug = Math.random() < 0.3;
+                catchItems.push({
+                    x: Math.random() * (canvas.width - 30) + 10,
+                    y: 0,
+                    type: isBug ? 'BUG' : 'LUA',
+                    speed: Math.random() * 1.0 + 1.8
+                });
+                lastSpawn = now;
+            }
+
+            catchItems.forEach((item, idx) => {
+                item.y += item.speed;
+
+                if (item.type === 'LUA') {
+                    ctx.fillStyle = '#00ff66';
+                    ctx.font = '11px JetBrains Mono';
+                    ctx.fillText("Lua", item.x, item.y);
+                } else {
+                    ctx.fillStyle = '#ff2a2a';
+                    ctx.font = '12px JetBrains Mono';
+                    ctx.fillText("👾", item.x, item.y);
+                }
+
+                if (item.y >= canvas.height - 20 && item.x >= basket.x - 10 && item.x <= basket.x + basket.width) {
+                    if (item.type === 'LUA') {
+                        score += 5;
+                    } else {
+                        lives--;
+                    }
+                    catchItems.splice(idx, 1);
+                    updateLivesUI();
+
+                    if (lives <= 0) {
+                        showGameOver("HẾT MẠNG TỒ̀I!", "Chơi vậy cũng chết được 3 mạng? Về luyện lại tay đi bro!");
+                        return;
+                    }
+                } 
+                else if (item.y > canvas.height) {
+                    if (item.type === 'LUA') {
+                        lives--;
+                        updateLivesUI();
+                        if (lives <= 0) {
+                            showGameOver("BỎ LỠ LUA!", "Rơi hết Script kìa cha nội! Thua rồi!");
+                            return;
+                        }
+                    }
+                    catchItems.splice(idx, 1);
+                }
+            });
+
+            gameLoopId = requestAnimationFrame(runCatchGame);
+        }
+
+        let bird = { y: 90, velocity: 0 };
+        let pipes = [];
+        let gameStarted = false;
+
+        function initFlappyGame() {
+            canvas.style.display = 'block';
+            bird.y = 90;
+            bird.velocity = 0;
+            pipes = [];
+            gameStarted = false;
+
+            statusText.innerText = "CHẠM MÀN HÌNH ĐỂ BẮT ĐẦU BAY!";
+
+            canvas.onclick = handleFlappyInput;
+            window.onkeydown = (e) => { if (e.code === 'Space' && currentGame === 3) handleFlappyInput(); };
+
+            runFlappyGame();
+        }
+
+        function handleFlappyInput() {
+            if (!gameStarted) {
+                gameStarted = true;
+                statusText.innerText = "ĐANG BAY...";
+            }
+            bird.velocity = -3.1;
+        }
+
+        function runFlappyGame() {
+            if (currentGame !== 3) return;
+            ctx.fillStyle = '#000';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            if (gameStarted) {
+                bird.velocity += 0.20;
+                bird.y += bird.velocity;
+
+                if (pipes.length === 0 || pipes[pipes.length - 1].x < canvas.width - 130) {
+                    let topH = Math.random() * 80 + 20;
+                    pipes.push({ x: canvas.width, top: topH, gap: 65, passed: false });
+                }
+            } else {
+                ctx.fillStyle = '#aaa';
+                ctx.font = '11px JetBrains Mono';
+                ctx.fillText("BẤM ĐỂ BAY", 145, 140);
+            }
+
+            ctx.fillStyle = '#ff2a2a';
+            ctx.fillRect(60, bird.y, 14, 14);
+
+            pipes.forEach((p, idx) => {
+                if (gameStarted) p.x -= 2;
+
+                ctx.fillStyle = '#111';
+                ctx.strokeStyle = '#ff2a2a';
+                ctx.lineWidth = 1.5;
+
+                ctx.fillRect(p.x, 0, 26, p.top);
+                ctx.strokeRect(p.x, 0, 26, p.top);
+
+                ctx.fillRect(p.x, p.top + p.gap, 26, canvas.height - (p.top + p.gap));
+                ctx.strokeRect(p.x, p.top + p.gap, 26, canvas.height - (p.top + p.gap));
+
+                if (60 + 14 > p.x && 60 < p.x + 26) {
+                    if (bird.y < p.top || bird.y + 14 > p.top + p.gap) {
+                        showGameOver("TOANG RỒ̀I!", "Đụng tường rồi cha nội! Điểm được có " + score + " à?");
+                        return;
+                    }
+                }
+
+                if (p.x + 26 < 60 && !p.passed) {
+                    p.passed = true;
+                    score += 1;
+                    scoreEl.innerText = score;
+                }
+
+                if (p.x < -30) pipes.splice(idx, 1);
+            });
+
+            if (bird.y > canvas.height || bird.y < 0) {
+                showGameOver("RƠI TỰ DO!", "Bay kiểu gì cắm đầu xuống đất thế?");
+                return;
+            }
+
+            gameLoopId = requestAnimationFrame(runFlappyGame);
+        }
+
+        function showGameOver(title, msg) {
+            cancelAnimationFrame(gameLoopId);
+            overlayTitle.innerText = title;
+            overlayMsg.innerText = msg;
+            startBtn.style.display = 'block';
+            startBtn.innerText = "[ CHƠI LẠI ]";
+            overlay.style.display = 'flex';
+        }
+
+        switchGame(1);
+    </script>
+</body>
+</html>
