@@ -7,7 +7,7 @@ const app = express();
 const SECRET_SCRIPT_URL = process.env.SECRET_SCRIPT_URL;
 const SECRET_KEY = process.env.SECRET_KEY;
 
-app.get('/get-script', async (req, res) => {
+app.get('/loader', async (req, res) => {
     const userAgent = req.headers['user-agent'] || '';
     const clientAuth = req.headers['authorization'];
     const clientTime = req.headers['x-timestamp'];
