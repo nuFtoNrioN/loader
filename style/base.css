@@ -1,0 +1,295 @@
+* {
+  margin: 0; padding: 0; box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+}
+
+body {
+  background-color: #030303;
+  color: #d1d5db;
+  font-family: 'JetBrains Mono', monospace;
+  display: flex; justify-content: center; align-items: center;
+  min-height: 100vh;
+  overflow: hidden;
+  position: relative;
+}
+
+body::before {
+  content: " ";
+  position: absolute; inset: 0;
+  background:
+    linear-gradient(rgba(18,16,16,0) 50%, rgba(0,0,0,0.25) 50%),
+    linear-gradient(90deg, rgba(255,0,0,0.06), rgba(0,255,0,0.02), rgba(0,0,255,0.06));
+  z-index: 100;
+  background-size: 100% 3px, 6px 100%;
+  pointer-events: none;
+}
+
+/* ===== CARD ===== */
+.card {
+  background: #0a0a0c;
+  border: 2px solid #ff2a2a;
+  padding: 20px;
+  max-width: 440px;
+  width: 94%;
+  box-shadow: 8px 8px 0px #ff2a2a;
+  position: relative;
+  z-index: 10;
+}
+
+/* ===== HEADER ===== */
+.header {
+  display: flex; justify-content: space-between; align-items: center;
+  border-bottom: 2px solid #222;
+  padding-bottom: 10px; margin-bottom: 14px;
+}
+.brand { font-size: 13px; font-weight: 800; color: #fff; }
+.status-tag {
+  background: #ff2a2a; color: #000;
+  font-size: 10px; font-weight: 800;
+  padding: 2px 6px;
+}
+
+h1 {
+  font-size: 20px; font-weight: 800;
+  color: #ff2a2a;
+  margin-bottom: 6px;
+}
+p.desc {
+  color: #888; font-size: 11px; line-height: 1.4;
+  margin-bottom: 14px;
+}
+
+/* ===== TAB MENU ===== */
+.game-menu {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.menu-btn {
+  flex: 1;
+  background: #0d0d10;
+  color: #666;
+  border: 1px solid #2a2a2e;
+  padding: 8px 2px;
+  font-family: inherit;
+  font-size: 10px;
+  font-weight: 800;
+  cursor: pointer;
+  text-transform: uppercase;
+  outline: none;
+  position: relative;
+  overflow: hidden;
+  transform-origin: center bottom;
+  transition:
+    transform 0.28s cubic-bezier(.34,1.56,.64,1),
+    background 0.25s ease,
+    color 0.25s ease,
+    border-color 0.25s ease,
+    box-shadow 0.25s ease,
+    opacity 0.25s ease;
+  opacity: 0.55;
+}
+
+.menu-btn::before {
+  content: "";
+  position: absolute; inset: 0;
+  background: linear-gradient(180deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0) 45%);
+  opacity: 0;
+  transition: opacity 0.25s ease;
+  pointer-events: none;
+}
+
+.menu-btn:hover {
+  opacity: 0.85;
+  color: #bbb;
+  border-color: #444;
+}
+
+/* Tab đang active: nổi bật, nở to, phát sáng */
+.menu-btn.active {
+  background: linear-gradient(180deg, #ff3b3b 0%, #ff1a1a 55%, #b81414 100%);
+  color: #000;
+  border-color: #ff6b6b;
+  opacity: 1;
+  transform: scale(1.10) translateY(-2px);
+  box-shadow:
+    0 0 0 1px rgba(255,80,80,0.7),
+    0 0 14px rgba(255,42,42,0.85),
+    0 0 28px rgba(255,42,42,0.5),
+    0 6px 0 rgba(0,0,0,0.6),
+    inset 0 1px 0 rgba(255,255,255,0.35);
+  z-index: 2;
+  animation: tabActivePulse 1.6s ease-in-out infinite alternate;
+}
+.menu-btn.active::before { opacity: 1; }
+
+@keyframes tabActivePulse {
+  from {
+    box-shadow:
+      0 0 0 1px rgba(255,80,80,0.7),
+      0 0 12px rgba(255,42,42,0.7),
+      0 0 22px rgba(255,42,42,0.35),
+      0 6px 0 rgba(0,0,0,0.6),
+      inset 0 1px 0 rgba(255,255,255,0.35);
+  }
+  to {
+    box-shadow:
+      0 0 0 1px rgba(255,120,120,0.9),
+      0 0 18px rgba(255,42,42,1),
+      0 0 34px rgba(255,42,42,0.65),
+      0 6px 0 rgba(0,0,0,0.6),
+      inset 0 1px 0 rgba(255,255,255,0.45);
+  }
+}
+
+/* Tab vừa mất active: co lại một nhịp */
+.menu-btn.just-left {
+  animation: tabLeave 0.32s cubic-bezier(.34,1.56,.64,1);
+}
+@keyframes tabLeave {
+  0%   { transform: scale(1.10) translateY(-2px); }
+  60%  { transform: scale(0.94) translateY(0); }
+  100% { transform: scale(1) translateY(0); }
+}
+
+/* ===== GAME WRAPPER (container cho TV static) ===== */
+#game-wrapper {
+  border: 2px solid #222;
+  background: #000;
+  position: relative;   /* QUAN TRỌNG: để #tv-static absolute bám vào */
+  height: 200px;
+  margin-bottom: 14px;
+  display: flex; justify-content: center; align-items: center;
+  overflow: hidden;
+}
+
+/* ===== OVERLAY ===== */
+.overlay-screen {
+  position: absolute; inset: 0;
+  background: rgba(0,0,0,0.9);
+  display: flex; flex-direction: column; justify-content: center; align-items: center;
+  gap: 10px;
+  z-index: 20;
+}
+#overlay-title {
+  color: #ff2a2a;
+  font-size: 16px;
+}
+#overlay-msg {
+  font-size: 11px;
+  text-align: center;
+  color: #aaa;
+  padding: 0 20px;
+  white-space: pre-line;   /* để \n xuống dòng */
+}
+
+.btn-restart {
+  background: #ff2a2a;
+  color: #000;
+  border: none;
+  padding: 8px 16px;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 3px 3px 0px #fff;
+  -webkit-tap-highlight-color: transparent;
+  outline: none;
+}
+
+/* ===== FOOTER ===== */
+.footer {
+  font-size: 10px;
+  color: #555;
+  display: flex;
+  justify-content: space-between;
+  border-top: 1px solid #151515;
+  padding-top: 10px;
+}
+#score { color: #fff; }
+
+/* ============================================================
+   TV STATIC TRANSITION — CHỈ HIỆN TRONG #game-wrapper
+   ============================================================ */
+
+#tv-static {
+  position: absolute;   /* bám vào #game-wrapper */
+  inset: 0;
+  z-index: 30;          /* trên overlay (20) */
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  overflow: hidden;
+  background:
+    /* Sọc ngang sáng/tối kiểu scanline */
+    repeating-linear-gradient(
+      0deg,
+      rgba(255,255,255,0.10) 0px,
+      rgba(255,255,255,0.10) 1px,
+      rgba(0,0,0,0.15) 2px,
+      rgba(0,0,0,0.15) 3px
+    ),
+    /* Nhiễu hạt: chồng màu ngẫu nhiên */
+    repeating-conic-gradient(
+      from 0deg,
+      #000 0deg, #333 20deg, #fff 40deg, #000 60deg,
+      #555 80deg, #fff 100deg, #000 120deg, #222 140deg,
+      #fff 160deg, #000 180deg
+    );
+  background-size: 100% 3px, 12px 12px;
+}
+
+/* Dải sáng chạy dọc kiểu VHS roll */
+#tv-static::before {
+  content: "";
+  position: absolute; inset: 0;
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    rgba(255,255,255,0.25) 45%,
+    rgba(255,255,255,0.55) 50%,
+    rgba(255,255,255,0.25) 55%,
+    transparent 100%
+  );
+  background-size: 100% 80px;
+  background-repeat: no-repeat;
+  background-position: 0 -80px;
+  animation: vhsRoll 0.35s linear forwards;
+  pointer-events: none;
+}
+
+/* Tách màu RGB nhẹ */
+#tv-static::after {
+  content: "";
+  position: absolute; inset: 0;
+  background: linear-gradient(90deg,
+    rgba(255,0,0,0.15) 0%,
+    rgba(0,255,0,0.15) 33%,
+    rgba(0,0,255,0.15) 66%,
+    rgba(255,0,0,0.15) 100%);
+  mix-blend-mode: screen;
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+#tv-static.active {
+  visibility: visible;
+  opacity: 1;
+  animation: tvScan 0.35s steps(6) forwards;
+}
+
+@keyframes tvScan {
+  0%   { opacity: 0; transform: scaleY(0.02) scaleX(1);    filter: brightness(3); }
+  15%  { opacity: 1; transform: scaleY(0.15) scaleX(1.05); filter: brightness(2.2); }
+  30%  { opacity: 1; transform: scaleY(1) scaleX(1);       filter: brightness(1.4) contrast(1.6); }
+  60%  { opacity: 1; transform: scaleY(1) scaleX(1);       filter: brightness(1) contrast(1.2); background-position: 0 0, 6px -6px; }
+  85%  { opacity: 1; transform: scaleY(1) scaleX(1);       filter: brightness(1.1) contrast(1.3); background-position: 0 0, -4px 4px; }
+  100% { opacity: 0; transform: scaleY(0.02) scaleX(1);    filter: brightness(3); }
+}
+
+@keyframes vhsRoll {
+  0%   { background-position: 0 -80px; }
+  100% { background-position: 0 calc(100% + 80px); }
+}
