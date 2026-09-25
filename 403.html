@@ -5,9 +5,334 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>NOIRHUB // ACCESS_RESTRICTED</title>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style/base.css">
-<link rel="stylesheet" href="style/shell.css">
-<link rel="stylesheet" href="style/catch.css">
+<style>
+  * {
+    margin: 0; padding: 0; box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+  }
+  body {
+    background-color: #030303; color: #d1d5db;
+    font-family: 'JetBrains Mono', monospace;
+    display: flex; justify-content: center; align-items: center;
+    min-height: 100vh; overflow: hidden; position: relative;
+  }
+  body::before {
+    content: " "; display: block; position: absolute; inset: 0;
+    background:
+      linear-gradient(rgba(18,16,16,0) 50%, rgba(0,0,0,0.25) 50%),
+      linear-gradient(90deg, rgba(255,0,0,0.06), rgba(0,255,0,0.02), rgba(0,0,255,0.06));
+    z-index: 100; background-size: 100% 3px, 6px 100%;
+    pointer-events: none;
+  }
+  .card {
+    background: #0a0a0c; border: 2px solid #ff2a2a;
+    padding: 20px; max-width: 440px; width: 94%;
+    box-shadow: 8px 8px 0px #ff2a2a;
+    position: relative; z-index: 10;
+  }
+  .header {
+    display: flex; justify-content: space-between; align-items: center;
+    border-bottom: 2px solid #222; padding-bottom: 10px; margin-bottom: 14px;
+  }
+  .brand { font-size: 13px; font-weight: 800; color: #fff; }
+  .status-tag { background: #ff2a2a; color: #000; font-size: 10px; font-weight: 800; padding: 2px 6px; }
+  h1 { font-size: 20px; font-weight: 800; color: #ff2a2a; margin-bottom: 6px; }
+  p.desc { color: #888; font-size: 11px; line-height: 1.4; margin-bottom: 14px; }
+
+  /* ===== TAB MENU ===== */
+  .game-menu {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 12px;
+  }
+  .menu-btn {
+    flex: 1;
+    background: #0d0d10;
+    color: #666;
+    border: 1px solid #2a2a2e;
+    padding: 8px 2px;
+    font-family: inherit;
+    font-size: 10px;
+    font-weight: 800;
+    cursor: pointer;
+    text-transform: uppercase;
+    outline: none;
+    position: relative;
+    overflow: hidden;
+    transform-origin: center bottom;
+    transition:
+      transform 0.28s cubic-bezier(.34,1.56,.64,1),
+      background 0.25s ease,
+      color 0.25s ease,
+      border-color 0.25s ease,
+      box-shadow 0.25s ease,
+      opacity 0.25s ease;
+    opacity: 0.55;
+  }
+
+  .menu-btn::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0) 45%);
+    opacity: 0;
+    transition: opacity 0.25s ease;
+    pointer-events: none;
+  }
+
+  .menu-btn:hover {
+    opacity: 0.85;
+    color: #bbb;
+    border-color: #444;
+  }
+
+  /* Tab đang active: nổi bật, nở to, phát sáng */
+  .menu-btn.active {
+    background: linear-gradient(180deg, #ff3b3b 0%, #ff1a1a 55%, #b81414 100%);
+    color: #000;
+    border-color: #ff6b6b;
+    opacity: 1;
+    transform: scale(1.10) translateY(-2px);
+    box-shadow:
+      0 0 0 1px rgba(255,80,80,0.7),
+      0 0 14px rgba(255,42,42,0.85),
+      0 0 28px rgba(255,42,42,0.5),
+      0 6px 0 rgba(0,0,0,0.6),
+      inset 0 1px 0 rgba(255,255,255,0.35);
+    z-index: 2;
+    animation: tabActivePulse 1.6s ease-in-out infinite alternate;
+  }
+  .menu-btn.active::before { opacity: 1; }
+
+  @keyframes tabActivePulse {
+    from { box-shadow:
+      0 0 0 1px rgba(255,80,80,0.7),
+      0 0 12px rgba(255,42,42,0.7),
+      0 0 22px rgba(255,42,42,0.35),
+      0 6px 0 rgba(0,0,0,0.6),
+      inset 0 1px 0 rgba(255,255,255,0.35); }
+    to { box-shadow:
+      0 0 0 1px rgba(255,120,120,0.9),
+      0 0 18px rgba(255,42,42,1),
+      0 0 34px rgba(255,42,42,0.65),
+      0 6px 0 rgba(0,0,0,0.6),
+      inset 0 1px 0 rgba(255,255,255,0.45); }
+  }
+
+  /* Tab vừa mới bị bỏ chọn: co lại một nhịp */
+  .menu-btn.just-left {
+    animation: tabLeave 0.32s cubic-bezier(.34,1.56,.64,1);
+  }
+  @keyframes tabLeave {
+    0% { transform: scale(1.10) translateY(-2px); }
+    60% { transform: scale(0.94) translateY(0); }
+    100% { transform: scale(1) translateY(0); }
+  }
+
+  #game-wrapper {
+    border: 2px solid #222; background: #000; position: relative;
+    height: 200px; margin-bottom: 14px;
+    display: flex; justify-content: center; align-items: center;
+    overflow: hidden;
+  }
+  canvas { display: block; width: 100%; height: 100%; }
+
+  #buff-bar {
+    position: absolute; top: 4px; left: 4px; right: 4px;
+    display: flex; flex-wrap: wrap; gap: 3px;
+    pointer-events: none; z-index: 12;
+    font-size: 9px; font-weight: 800;
+  }
+  .buff-chip {
+    background: rgba(0,0,0,0.75);
+    border: 1px solid currentColor;
+    padding: 2px 5px; border-radius: 2px;
+    display: inline-flex; align-items: center; gap: 3px;
+    box-shadow: 0 0 6px currentColor;
+    animation: buffPulse 0.8s ease-in-out infinite alternate;
+  }
+  @keyframes buffPulse { from { opacity: 0.65; } to { opacity: 1; } }
+
+  .cups-stage { position: relative; width: 100%; height: 100%; }
+  .slot { position: absolute; bottom: 30px; width: 54px; height: 64px; pointer-events: none; }
+
+  .prize {
+    position: absolute; left: 50%; bottom: 10px;
+    transform: translateX(-50%) scale(0.6); opacity: 0;
+    transition: opacity 0.25s ease, transform 0.35s cubic-bezier(.2,1.6,.5,1);
+    font-weight: 800; font-size: 22px; line-height: 1;
+    filter: drop-shadow(0 0 8px currentColor); z-index: 3;
+  }
+  .prize.show { opacity: 1; transform: translateX(-50%) scale(1); }
+  .prize.coin { color: #ffcf33; }
+  .prize.cross { color: #444; filter: none; }
+
+  .cup {
+    position: absolute; bottom: 30px;
+    width: 54px; height: 64px;
+    cursor: pointer; user-select: none; -webkit-user-select: none;
+    -webkit-tap-highlight-color: transparent; outline: none;
+    z-index: 5;
+    transition: left 0.15s linear, bottom 0.25s cubic-bezier(.3,1.4,.5,1), transform 0.25s cubic-bezier(.3,1.4,.5,1);
+    filter: drop-shadow(0 6px 4px rgba(0,0,0,0.85));
+  }
+  .cup::before {
+    content: ""; position: absolute; inset: 6px 0 2px 0;
+    clip-path: polygon(22% 0, 78% 0, 100% 100%, 0% 100%);
+    background:
+      linear-gradient(90deg,
+        #08080a 0%, #1c1c20 14%, #34343c 34%,
+        #4a4a55 50%, #34343c 66%, #1c1c20 86%, #08080a 100%),
+      linear-gradient(180deg, #16161a 0%, #1e1e24 55%, #0a0a0c 100%);
+    background-blend-mode: overlay;
+  }
+  .cup::after {
+    content: ""; position: absolute; top: 0; left: 22%; right: 22%; height: 12px;
+    border-radius: 50%;
+    background: radial-gradient(ellipse at 50% 55%,
+      #1a1a1e 0%, #2a2a30 45%, #0a0a0c 78%, #050505 100%);
+    box-shadow:
+      inset 0 -1px 1px rgba(255,255,255,0.05),
+      0 1px 2px rgba(0,0,0,0.6);
+  }
+  .cup-base {
+    position: absolute; left: 2%; right: 2%; bottom: 0; height: 14px;
+    background: transparent;
+    border-bottom: 3px solid #ff2a2a;
+    border-radius: 0 0 50% 50% / 0 0 100% 100%;
+    filter: drop-shadow(0 3px 6px rgba(255,42,42,0.75));
+    box-shadow:
+      0 3px 10px rgba(255,42,42,0.4),
+      inset 0 -3px 4px rgba(255,42,42,0.35);
+    pointer-events: none;
+  }
+  .cup.open { bottom: 90px; transform: rotate(-5deg); }
+  .cup.open .cup-base {
+    border-bottom-color: #ff5050;
+    filter: drop-shadow(0 4px 10px rgba(255,42,42,1));
+    box-shadow:
+      0 4px 16px rgba(255,42,42,0.7),
+      inset 0 -3px 4px rgba(255,80,80,0.5);
+  }
+  .cups-stage.shuffling .cup { cursor: default; }
+
+  .overlay-screen {
+    position: absolute; inset: 0; background: rgba(0,0,0,0.9);
+    display: flex; flex-direction: column; justify-content: center; align-items: center;
+    gap: 10px; z-index: 20;
+  }
+  .btn-restart {
+    background: #ff2a2a; color: #000; border: none; padding: 8px 16px;
+    font-family: inherit; font-size: 11px; font-weight: 800; cursor: pointer;
+    box-shadow: 3px 3px 0px #fff;
+    -webkit-tap-highlight-color: transparent; outline: none;
+  }
+
+  .touch-controls {
+    position: absolute; bottom: 6px; width: 100%;
+    display: flex; justify-content: space-between; padding: 0 10px;
+    pointer-events: none; z-index: 15;
+  }
+  .ctrl-btn {
+    background: rgba(255,42,42,0.3); border: 1px solid #ff2a2a; color: #fff;
+    width: 48px; height: 36px; font-weight: bold;
+    pointer-events: auto; cursor: pointer; font-family: inherit;
+    touch-action: none; user-select: none; -webkit-user-select: none;
+    -webkit-tap-highlight-color: transparent; outline: none;
+  }
+  .footer {
+    font-size: 10px; color: #555; display: flex; justify-content: space-between;
+    border-top: 1px solid #151515; padding-top: 10px;
+  }
+
+  /* ============ TV STATIC TRANSITION ============ */
+  #tv-static {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    pointer-events: none;
+    opacity: 0;
+    visibility: hidden;
+    background:
+      /* Sọc ngang sáng/tối chạy dọc */
+      repeating-linear-gradient(
+        0deg,
+        rgba(255,255,255,0.10) 0px,
+        rgba(255,255,255,0.10) 1px,
+        rgba(0,0,0,0.15) 2px,
+        rgba(0,0,0,0.15) 3px
+      ),
+      /* Nhiễu hạt: dùng conic nhiều màu chồng */
+      repeating-conic-gradient(
+        from 0deg,
+        #000 0deg, #333 20deg, #fff 40deg, #000 60deg,
+        #555 80deg, #fff 100deg, #000 120deg, #222 140deg,
+        #fff 160deg, #000 180deg
+      );
+    background-size:
+      100% 3px,
+      12px 12px;
+    mix-blend-mode: normal;
+    animation: tvScan 0.35s steps(6) forwards;
+  }
+
+  #tv-static::before {
+    /* Sọc sáng ngang chạy từ trên xuống (VHS roll) */
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      180deg,
+      transparent 0%,
+      rgba(255,255,255,0.25) 45%,
+      rgba(255,255,255,0.55) 50%,
+      rgba(255,255,255,0.25) 55%,
+      transparent 100%
+    );
+    background-size: 100% 80px;
+    background-repeat: no-repeat;
+    background-position: 0 -80px;
+    animation: vhsRoll 0.35s linear forwards;
+    pointer-events: none;
+  }
+
+  #tv-static::after {
+    /* Nhiễu RGB tách màu */
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(90deg,
+        rgba(255,0,0,0.15) 0%,
+        rgba(0,255,0,0.15) 33%,
+        rgba(0,0,255,0.15) 66%,
+        rgba(255,0,0,0.15) 100%);
+    mix-blend-mode: screen;
+    opacity: 0.6;
+    pointer-events: none;
+  }
+
+  #tv-static.active {
+    visibility: visible;
+    opacity: 1;
+    animation: tvScan 0.35s steps(6) forwards;
+  }
+
+  @keyframes tvScan {
+    0%   { opacity: 0;    transform: scaleY(0.02) scaleX(1); filter: brightness(3); }
+    15%  { opacity: 1;    transform: scaleY(0.15) scaleX(1.05); filter: brightness(2.2); }
+    30%  { opacity: 1;    transform: scaleY(1) scaleX(1);      filter: brightness(1.4) contrast(1.6); }
+    60%  { opacity: 1;    transform: scaleY(1) scaleX(1);      filter: brightness(1) contrast(1.2); background-position: 0 0, 6px -6px; }
+    85%  { opacity: 1;    transform: scaleY(1) scaleX(1);      filter: brightness(1.1) contrast(1.3); background-position: 0 0, -4px 4px; }
+    100% { opacity: 0;    transform: scaleY(0.02) scaleX(1);    filter: brightness(3); }
+  }
+
+  @keyframes vhsRoll {
+    0%   { background-position: 0 -80px; }
+    100% { background-position: 0 calc(100% + 80px); }
+  }
+</style>
 </head>
 <body>
 <div class="card">
@@ -27,8 +352,10 @@
 
   <div id="game-wrapper">
     <div id="overlay" class="overlay-screen">
-      <h2 id="overlay-title">TRÁO CỐC TÌM R$</h2>
-      <p id="overlay-msg">Nhớ vị trí R$, xáo trộn xong bấm chọn cốc!</p>
+      <h2 id="overlay-title" style="color:#ff2a2a;font-size:16px;">TRÁO CỐC TÌM R$</h2>
+      <p id="overlay-msg" style="font-size:11px;text-align:center;color:#aaa;padding:0 20px;">
+        Nhớ vị trí R$, xáo trộn xong bấm chọn cốc!
+      </p>
       <button class="btn-restart" id="start-btn">[ BẮT ĐẦU ]</button>
     </div>
 
@@ -49,19 +376,972 @@
       <button class="ctrl-btn" data-dir="left">&lt;</button>
       <button class="ctrl-btn" data-dir="right">&gt;</button>
     </div>
-
-    <!-- TV static nằm TRONG wrapper -->
-    <div id="tv-static"></div>
   </div>
 
   <div class="footer">
     <span id="status-text">STATUS: READY</span>
-    <span id="extra-info">SCORE: <b id="score">0</b></span>
+    <span id="extra-info">SCORE: <b id="score" style="color:#fff;">0</b></span>
   </div>
 </div>
 
-<script src="script/core.js"></script>
-<script src="script/shell.js"></script>
-<script src="script/catch.js"></script>
+<!-- TV STATIC OVERLAY -->
+<div id="tv-static"></div>
+
+<script>
+(() => {
+  'use strict';
+
+  // ========== HERO SVG ==========
+  const HERO_SVG = `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" shape-rendering="crispEdges">
+      <style>
+        .skin-dark { fill: #160b1f; }
+        .skin-purple { fill: #5c2e7a; }
+        .eye-white { fill: #f4eef8; }
+        .eye-pink { fill: #d633b3; }
+        .eye-dark { fill: #8c1a7a; }
+      </style>
+      <path class="skin-dark" d="M12,8 h12 v2 h-12z M10,10 h16 v2 h-16z M8,12 h18 v8 h-18z M10,20 h16 v2 h-16z M12,22 h12 v2 h-12z"/>
+      <path class="skin-purple" d="M14,10 h8 v2 h-8z M12,12 h12 v6 h-12z M14,18 h8 v2 h-8z"/>
+      <path class="skin-dark" d="M22,4 h4 v4 h-4z M24,8 h4 v4 h-4z"/>
+      <path class="skin-purple" d="M24,6 h2 v4 h-2z M26,8 h2 v4 h-2z"/>
+      <path class="skin-dark" d="M16,4 h4 v4 h-4z M18,8 h4 v4 h-4z"/>
+      <path class="skin-purple" d="M18,6 h2 v4 h-2z M20,8 h2 v4 h-2z"/>
+      <path class="eye-white" d="M18,14 h6 v4 h-6z"/>
+      <path class="eye-pink" d="M20,15 h3 v2 h-3z"/>
+      <path class="eye-dark" d="M20,16 h3 v1 h-3z"/>
+      <path class="eye-white" d="M22,15 h1 v1 h-1z"/>
+    </svg>
+  `;
+  const HERO_SVG_URL = 'data:image/svg+xml;utf8,' + encodeURIComponent(HERO_SVG);
+  const heroImg = new Image();
+  let heroReady = false;
+  heroImg.onload = () => { heroReady = true; };
+  heroImg.src = HERO_SVG_URL;
+
+  // ========== CONSTANTS ==========
+  const CUP_COUNT = 3;
+  const CUP_WIDTH = 54;
+  const SHELL_SWAPS = 18;
+  const SHELL_SPEED_START = 240;
+  const SHELL_SPEED_MIN = 80;
+  const SHELL_SPEED_STEP = 10;
+  const REVEAL_MS = 1500;
+
+  const CATCH_SPAWN_MS = 800;
+  const CATCH_BUG_RATE = 0.3;
+  const CATCH_BASE_SPEED = 1.8;
+  const CATCH_SPEED_VAR = 1.0;
+  const BASKET_SPEED = 5;
+  const BASKET_WIDTH_BASE = 44;
+  const BASKET_HEIGHT = 10;
+  const BASKET_BOTTOM_OFFSET = 15;
+  const MAX_LIVES = 3;
+  const BUFF_DROP_RATE = 0.10;
+
+  const FLAPPY_GRAVITY = 0.20;
+  const FLAPPY_FLAP = -3.7;
+  const FLAPPY_PIPE_W = 26;
+  const FLAPPY_PIPE_GAP = 65;
+  const FLAPPY_PIPE_SPACING = 130;
+  const FLAPPY_PIPE_SPEED = 2;
+  const HERO_SIZE = 32;
+  const HERO_HITBOX = 20;
+
+  const TV_TRANSITION_MS = 350;
+
+  // ========== STORAGE ==========
+  const STORAGE = {
+    SHELL_BEST: 'noirhub.shell.best',
+    SHELL_BEST_STREAK: 'noirhub.shell.bestStreak',
+    CATCH_BEST: 'noirhub.catch.best',
+    FLAPPY_BEST: 'noirhub.flappy.best',
+  };
+  function loadNum(key) {
+    const v = parseInt(localStorage.getItem(key) || '0', 10);
+    return Number.isFinite(v) ? v : 0;
+  }
+  function saveNum(key, val) {
+    try { localStorage.setItem(key, String(val)); } catch (e) {}
+  }
+  const Best = {
+    shellScore: loadNum(STORAGE.SHELL_BEST),
+    shellStreak: loadNum(STORAGE.SHELL_BEST_STREAK),
+    catchScore: loadNum(STORAGE.CATCH_BEST),
+    flappyScore: loadNum(STORAGE.FLAPPY_BEST),
+  };
+
+  // ========== DOM ==========
+  const $ = (s) => document.querySelector(s);
+  const $$ = (s) => document.querySelectorAll(s);
+  const canvas = $('#gameCanvas');
+  const ctx = canvas.getContext('2d');
+  const overlay = $('#overlay');
+  const overlayTitle = $('#overlay-title');
+  const overlayMsg = $('#overlay-msg');
+  const startBtn = $('#start-btn');
+  const statusText = $('#status-text');
+  const extraInfo = $('#extra-info');
+  const scoreEl = $('#score');
+  const game1UI = $('#game1-ui');
+  const catchControls = $('#catch-controls');
+  const buffBar = $('#buff-bar');
+  const cups = Array.from($$('#game1-ui .cup'));
+  const slots = Array.from($$('#game1-ui .slot'));
+  const prizes = Array.from($$('#game1-ui .prize'));
+  const tvStatic = $('#tv-static');
+  const menuBtns = Array.from($$('.menu-btn'));
+
+  // ========== STATE ==========
+  const State = {
+    currentGame: 0, score: 0, loopId: null, timers: new Set(),
+    cupPos: [0,1,2], slotPos: [0,0,0], targetCupId: -1,
+    isShuffling: false, canSelectCup: false,
+    streak: 0, bestStreakThisRun: 0,
+    basket: { x: 170, dir: 0 }, catchItems: [], lives: MAX_LIVES,
+    lastSpawn: 0, activeBuffs: {},
+    scoreMultiplier: 1, basketSpeedMult: 1, basketWidthMult: 1,
+    voidActive: false, slowMoActive: false, magnetActive: false,
+    doubleSpawnActive: false, shieldCharges: 0,
+    frozenUntil: 0, slowDebuffUntil: 0,
+    bird: { x: 60, y: 90, velocity: 0 }, pipes: [], gameStarted: false,
+    flames: [], lastFlameAt: 0, flapPhase: 0,
+    nextBlinkAt: 0, blinkUntil: 0,
+    isTransitioning: false,
+  };
+
+  // ========== BUFFS ==========
+  const BUFFS = {
+    X2:      { color: '#ffcf33', label: 'x2 ĐIỂM',   duration: 8000 },
+    X5:      { color: '#ff8c1a', label: 'x5 ĐIỂM',   duration: 6000 },
+    SPEED:   { color: '#3fa9ff', label: 'TỐC ĐỘ+',   duration: 8000 },
+    WIDTH:   { color: '#66ff8c', label: 'GIỎ RỘNG',  duration: 10000 },
+    LIFE:    { color: '#ff3b3b', label: '+1 MẠNG',   duration: 0 },
+    VOID:    { color: '#b866ff', label: 'ĐÓNG VOID', duration: 6000 },
+    SLOWMO:  { color: '#5ce1e6', label: 'SLOW-MO',   duration: 6000 },
+    SHIELD:  { color: '#dddddd', label: 'KHIÊN',     duration: 10000 },
+    MAGNET:  { color: '#c98b4b', label: 'NAM CHÂM',  duration: 7000 },
+    DSPAWN:  { color: '#e05cff', label: 'x2 SPAWN',  duration: 8000 },
+  };
+  const BUFF_KEYS = Object.keys(BUFFS);
+  const BUFF_SPEED_MULT = 1.8;
+  const BUFF_WIDTH_MULT = 1.8;
+  const BUG_UNLOCK = { ZIGZAG: 15, FREEZE: 20, ERRATIC: 30, SLOW: 40, BIG: 50, DRAIN: 70, BOMB: 100 };
+
+  // ========== TIMERS ==========
+  function setGameTimeout(fn, ms) {
+    const id = setTimeout(() => { State.timers.delete(id); fn(); }, ms);
+    State.timers.add(id); return id;
+  }
+  function setGameInterval(fn, ms) {
+    const id = setInterval(fn, ms);
+    State.timers.add(id); return id;
+  }
+  function clearAllTimers() {
+    State.timers.forEach((id) => { clearTimeout(id); clearInterval(id); });
+    State.timers.clear();
+  }
+
+  // ========== CANVAS ==========
+  function resizeCanvas() {
+    const dpr = window.devicePixelRatio || 1;
+    const rect = canvas.getBoundingClientRect();
+    const w = rect.width || 380, h = rect.height || 200;
+    canvas.width = Math.round(w * dpr);
+    canvas.height = Math.round(h * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    canvas._logicalW = w; canvas._logicalH = h;
+  }
+  window.addEventListener('resize', () => {
+    if (State.currentGame === 2 || State.currentGame === 3) resizeCanvas();
+    if (State.currentGame === 1) { updateSlotPositions(); paintCups(); }
+  });
+
+  // ========== UI ==========
+  function updateScoreUI() { scoreEl.innerText = State.score; }
+  function updateLivesUI() {
+    const lives = Math.max(0, State.lives);
+    extraInfo.innerHTML =
+      `MẠNG: <b style="color:#ff2a2a">${'❤️'.repeat(lives)}</b> | ` +
+      `SCORE: <b style="color:#fff">${State.score}</b>`;
+  }
+  function renderBuffBar(now) {
+    buffBar.innerHTML = '';
+    Object.keys(State.activeBuffs).forEach((type) => {
+      const expire = State.activeBuffs[type];
+      if (expire <= now) return;
+      const def = BUFFS[type]; if (!def) return;
+      const seconds = Math.ceil((expire - now) / 1000);
+      const chip = document.createElement('span');
+      chip.className = 'buff-chip'; chip.style.color = def.color;
+      chip.textContent = `${def.label} ${seconds}s`;
+      buffBar.appendChild(chip);
+    });
+    if (State.shieldCharges > 0) {
+      const chip = document.createElement('span');
+      chip.className = 'buff-chip'; chip.style.color = '#dddddd';
+      chip.textContent = `KHIÊN x${State.shieldCharges}`;
+      buffBar.appendChild(chip);
+    }
+    if (now < State.frozenUntil) {
+      const chip = document.createElement('span');
+      chip.className = 'buff-chip'; chip.style.color = '#5ce1e6';
+      chip.textContent = `BĂNG ${Math.ceil((State.frozenUntil - now) / 1000)}s`;
+      buffBar.appendChild(chip);
+    }
+    if (now < State.slowDebuffUntil) {
+      const chip = document.createElement('span');
+      chip.className = 'buff-chip'; chip.style.color = '#ff7a3c';
+      chip.textContent = `CHẬM ${Math.ceil((State.slowDebuffUntil - now) / 1000)}s`;
+      buffBar.appendChild(chip);
+    }
+  }
+  function showGameOver(title, msg) {
+    cancelAnimationFrame(State.loopId); State.loopId = null;
+    overlayTitle.innerText = title; overlayMsg.innerText = msg;
+    startBtn.style.display = 'block'; startBtn.innerText = '[ CHƠI LẠI ]';
+    overlay.style.display = 'flex';
+    buffBar.style.display = 'none'; buffBar.innerHTML = '';
+  }
+
+  // ========== TV STATIC TRANSITION ==========
+  function playTVTransition(onMidpoint) {
+    if (State.isTransitioning) return;
+    State.isTransitioning = true;
+
+    // Reset animation bằng cách remove + reflow + add class
+    tvStatic.classList.remove('active');
+    // Force reflow
+    void tvStatic.offsetWidth;
+    tvStatic.classList.add('active');
+
+    // Điểm giữa animation (~50%) là lúc màn hình đen đặc nhất
+    // → đổi game thực sự ở đây để không thấy nội dung cũ bị đổi
+    setTimeout(() => {
+      if (typeof onMidpoint === 'function') onMidpoint();
+    }, TV_TRANSITION_MS * 0.45);
+
+    // Kết thúc
+    setTimeout(() => {
+      tvStatic.classList.remove('active');
+      State.isTransitioning = false;
+    }, TV_TRANSITION_MS + 40);
+  }
+
+  // ========== GAME SWITCH ==========
+  function destroyCurrentGame() {
+    cancelAnimationFrame(State.loopId); State.loopId = null;
+    clearAllTimers(); canvas.onclick = null;
+    State.basket.dir = 0; State.gameStarted = false;
+    State.isShuffling = false; State.canSelectCup = false;
+    game1UI.classList.remove('shuffling');
+    cups.forEach((c) => c.classList.remove('open'));
+    prizes.forEach((p) => p.classList.remove('show'));
+    State.activeBuffs = {}; State.scoreMultiplier = 1;
+    State.basketSpeedMult = 1; State.basketWidthMult = 1;
+    State.voidActive = false; State.slowMoActive = false;
+    State.magnetActive = false; State.doubleSpawnActive = false;
+    State.shieldCharges = 0; State.frozenUntil = 0; State.slowDebuffUntil = 0;
+    State.flames = [];
+    buffBar.style.display = 'none'; buffBar.innerHTML = '';
+  }
+
+  function applyGameUI(id) {
+    State.currentGame = id; State.score = 0;
+    State.streak = 0; State.bestStreakThisRun = 0;
+    updateScoreUI();
+    game1UI.style.display = 'none';
+    catchControls.style.display = 'none';
+    canvas.style.display = 'none';
+    overlay.style.display = 'flex';
+    startBtn.style.display = 'block'; startBtn.innerText = '[ BẮT ĐẦU ]';
+
+    if (id === 1) {
+      overlayTitle.innerText = 'TRÁO CỐC TÌM R$';
+      overlayMsg.innerText =
+        `Nhớ vị trí R$. Ăn đúng liên tiếp để tăng STREAK!\n` +
+        `BEST: ${Best.shellScore} | STREAK: ${Best.shellStreak}`;
+      statusText.innerText = 'STATUS: READY';
+      extraInfo.innerHTML = `SCORE: <b id="score" style="color:#fff;">0</b>`;
+    } else if (id === 2) {
+      overlayTitle.innerText = 'HỨNG LUA SCRIPT';
+      overlayMsg.innerText = `Hứng 'LUA' (10% rơi buff!). Né bug.\nBEST: ${Best.catchScore}`;
+      statusText.innerText = 'STATUS: READY';
+    } else if (id === 3) {
+      overlayTitle.innerText = 'FLAPPY 403';
+      overlayMsg.innerText =
+        `Bấm [ BẮT ĐẦU ] rồi CLICK/TOUCH để điều khiển nhân vật bay!\n` +
+        `BEST: ${Best.flappyScore}`;
+      statusText.innerText = 'STATUS: READY';
+    }
+  }
+
+  function updateTabUI(id) {
+    menuBtns.forEach((btn) => {
+      const btnId = Number(btn.dataset.game);
+      const wasActive = btn.classList.contains('active');
+      if (btnId === id) {
+        btn.classList.add('active');
+        btn.classList.remove('just-left');
+      } else {
+        if (wasActive) {
+          // tab vừa mất active → chạy animation co lại
+          btn.classList.remove('active');
+          btn.classList.add('just-left');
+          setTimeout(() => btn.classList.remove('just-left'), 340);
+        } else {
+          btn.classList.remove('active');
+        }
+      }
+    });
+  }
+
+  function switchGame(id, skipTransition) {
+    if (State.isTransitioning) return;
+
+    const doSwitch = () => {
+      destroyCurrentGame();
+      applyGameUI(id);
+      updateTabUI(id);
+    };
+
+    if (skipTransition) {
+      doSwitch();
+      return;
+    }
+
+    // Nếu đang chơi → chỉ cần đổi, overlay hiện sẵn
+    // Nếu click tab trùng game hiện tại → vẫn cho transition cho vui
+    playTVTransition(doSwitch);
+  }
+
+  function startCurrentGame() {
+    State.score = 0; State.streak = 0; State.bestStreakThisRun = 0;
+    updateScoreUI();
+    if (State.currentGame === 3) {
+      overlay.style.display = 'none'; initFlappyGame(); return;
+    }
+    startBtn.style.display = 'none';
+    let count = 3;
+    overlayTitle.innerText = String(count);
+    overlayMsg.innerText = 'CHUẨN BỊ...';
+    const iv = setGameInterval(() => {
+      count--;
+      if (count > 0) overlayTitle.innerText = String(count);
+      else {
+        clearInterval(iv); State.timers.delete(iv);
+        overlay.style.display = 'none';
+        if (State.currentGame === 1) runShellGame();
+        if (State.currentGame === 2) initCatchGame();
+      }
+    }, 800);
+  }
+
+  // ========== GAME 1: SHELL ==========
+  function updateSlotPositions() {
+    const stageWidth = game1UI.clientWidth || 360;
+    const space = (stageWidth - CUP_WIDTH * CUP_COUNT) / (CUP_COUNT + 1);
+    State.slotPos = [space, space * 2 + CUP_WIDTH, space * 3 + CUP_WIDTH * 2];
+    slots.forEach((slot, i) => { slot.style.left = State.slotPos[i] + 'px'; });
+  }
+  function paintCups() {
+    cups.forEach((cup, cupId) => {
+      cup.style.left = State.slotPos[State.cupPos[cupId]] + 'px';
+    });
+  }
+  function paintPrizes() {
+    const coinSlot = State.cupPos[State.targetCupId];
+    prizes.forEach((prize, slotIndex) => {
+      const isCoin = slotIndex === coinSlot;
+      prize.classList.toggle('coin', isCoin);
+      prize.classList.toggle('cross', !isCoin);
+      prize.textContent = isCoin ? 'R$' : '✕';
+    });
+  }
+  function runShellGame() {
+    game1UI.style.display = 'block';
+    game1UI.classList.remove('shuffling');
+    updateSlotPositions();
+    State.cupPos = [0, 1, 2];
+    State.targetCupId = Math.floor(Math.random() * CUP_COUNT);
+    paintCups(); paintPrizes();
+    cups.forEach((cup) => cup.classList.add('open'));
+    prizes[State.cupPos[State.targetCupId]].classList.add('show');
+    statusText.innerText = `STREAK: ${State.streak}  |  BEST: ${State.bestStreakThisRun}`;
+    setGameTimeout(() => {
+      cups.forEach((cup) => cup.classList.remove('open'));
+      prizes.forEach((p) => p.classList.remove('show'));
+      setGameTimeout(shuffleCups, 500);
+    }, REVEAL_MS);
+  }
+  function shuffleCups() {
+    State.isShuffling = true;
+    game1UI.classList.add('shuffling');
+    statusText.innerText = 'ĐANG XÁO CỐC...';
+    let swaps = 0, speed = SHELL_SPEED_START;
+    function doSwap() {
+      if (State.currentGame !== 1) return;
+      if (swaps >= SHELL_SWAPS) {
+        State.isShuffling = false; State.canSelectCup = true;
+        game1UI.classList.remove('shuffling');
+        statusText.innerText = `STREAK: ${State.streak}  |  BEST: ${State.bestStreakThisRun}`;
+        return;
+      }
+      let i = Math.floor(Math.random() * CUP_COUNT);
+      let j = (i + 1 + Math.floor(Math.random() * (CUP_COUNT - 1))) % CUP_COUNT;
+      [State.cupPos[i], State.cupPos[j]] = [State.cupPos[j], State.cupPos[i]];
+      paintCups();
+      swaps++;
+      speed = Math.max(SHELL_SPEED_MIN, speed - SHELL_SPEED_STEP);
+      setGameTimeout(doSwap, speed);
+    }
+    doSwap();
+  }
+  function selectCup(cupId) {
+    if (!State.canSelectCup || State.isShuffling) return;
+    State.canSelectCup = false;
+    const cup = cups[cupId];
+    const slot = State.cupPos[cupId];
+    const prize = prizes[slot];
+    cup.classList.add('open');
+    const isWin = cupId === State.targetCupId;
+    prize.classList.toggle('coin', isWin);
+    prize.classList.toggle('cross', !isWin);
+    prize.textContent = isWin ? 'R$' : '✕';
+    prize.classList.add('show');
+    if (isWin) {
+      State.streak += 1;
+      State.bestStreakThisRun = Math.max(State.bestStreakThisRun, State.streak);
+      const gained = 10 + (State.streak - 1) * 2;
+      State.score += gained; updateScoreUI();
+      if (State.score > Best.shellScore) {
+        Best.shellScore = State.score; saveNum(STORAGE.SHELL_BEST, Best.shellScore);
+      }
+      if (State.streak > Best.shellStreak) {
+        Best.shellStreak = State.streak; saveNum(STORAGE.SHELL_BEST_STREAK, Best.shellStreak);
+      }
+      statusText.innerText = `STREAK: ${State.streak}  |  BEST: ${State.bestStreakThisRun}`;
+      setGameTimeout(() => {
+        if (State.currentGame !== 1) return;
+        cups.forEach((c) => c.classList.remove('open'));
+        prizes.forEach((p) => p.classList.remove('show'));
+        setGameTimeout(runShellGame, 500);
+      }, 900);
+    } else {
+      const lostStreak = State.streak; State.streak = 0;
+      statusText.innerText = 'SAI RỒI!';
+      setGameTimeout(() => {
+        const targetSlot = State.cupPos[State.targetCupId];
+        cups[State.targetCupId].classList.add('open');
+        const targetPrize = prizes[targetSlot];
+        targetPrize.classList.remove('cross');
+        targetPrize.classList.add('coin', 'show');
+        targetPrize.textContent = 'R$';
+        setGameTimeout(() => {
+          const msgs = [
+            'Mắt để dưới gót chân à bro? 🐸',
+            'Tráo có xíu đã quíu tay rồi, gà vãi!',
+            'Tay nhanh hơn não rồi bạn ơi!',
+            'Thua cả máy, chơi lại gỡ gạc không?',
+          ];
+          const msg = msgs[Math.floor(Math.random() * msgs.length)];
+          showGameOver('GÀ VÃI LỒ̀NG!',
+            `${msg}\nSCORE: ${State.score} | STREAK LOST: ${lostStreak}\n` +
+            `BEST SCORE: ${Best.shellScore} | BEST STREAK: ${Best.shellStreak}`);
+        }, 1200);
+      }, 800);
+    }
+  }
+
+  // ========== GAME 2: CATCH ==========
+  function getBasketWidth() { return BASKET_WIDTH_BASE * State.basketWidthMult; }
+  function initCatchGame() {
+    canvas.style.display = 'block';
+    catchControls.style.display = 'flex';
+    buffBar.style.display = 'flex';
+    resizeCanvas();
+    State.basket.x = (canvas._logicalW - getBasketWidth()) / 2;
+    State.basket.dir = 0; State.catchItems = [];
+    State.lives = MAX_LIVES; State.lastSpawn = performance.now();
+    State.activeBuffs = {}; State.scoreMultiplier = 1;
+    State.basketSpeedMult = 1; State.basketWidthMult = 1;
+    State.voidActive = false; State.slowMoActive = false;
+    State.magnetActive = false; State.doubleSpawnActive = false;
+    State.shieldCharges = 0; State.frozenUntil = 0; State.slowDebuffUntil = 0;
+    buffBar.innerHTML = '';
+    updateLivesUI();
+    statusText.innerText = `BEST: ${Best.catchScore}`;
+    runCatchGame();
+  }
+  function moveBasket(dir) {
+    if (performance.now() < State.frozenUntil) return;
+    State.basket.dir = dir * BASKET_SPEED * State.basketSpeedMult;
+  }
+  function applyBuff(type) {
+    const def = BUFFS[type]; if (!def) return;
+    const now = performance.now();
+    if (type === 'LIFE') { State.lives++; updateLivesUI(); return; }
+    if (type === 'SHIELD') { State.shieldCharges += 1; return; }
+    State.activeBuffs[type] = now + def.duration;
+    if (type === 'X2') State.scoreMultiplier = 2;
+    if (type === 'X5') State.scoreMultiplier = 5;
+    if (type === 'SPEED') State.basketSpeedMult = BUFF_SPEED_MULT;
+    if (type === 'WIDTH') {
+      const oldW = getBasketWidth();
+      State.basketWidthMult = BUFF_WIDTH_MULT;
+      State.basket.x += (oldW - getBasketWidth()) / 2;
+    }
+    if (type === 'VOID') State.voidActive = true;
+    if (type === 'SLOWMO') State.slowMoActive = true;
+    if (type === 'MAGNET') State.magnetActive = true;
+    if (type === 'DSPAWN') State.doubleSpawnActive = true;
+  }
+  function expireBuffs(now) {
+    Object.keys(State.activeBuffs).forEach((type) => {
+      if (State.activeBuffs[type] <= now) {
+        delete State.activeBuffs[type];
+        if (type === 'X2' || type === 'X5') State.scoreMultiplier = 1;
+        if (type === 'SPEED') State.basketSpeedMult = 1;
+        if (type === 'WIDTH') {
+          const oldW = getBasketWidth();
+          State.basketWidthMult = 1;
+          State.basket.x += (oldW - getBasketWidth()) / 2;
+        }
+        if (type === 'VOID') State.voidActive = false;
+        if (type === 'SLOWMO') State.slowMoActive = false;
+        if (type === 'MAGNET') State.magnetActive = false;
+        if (type === 'DSPAWN') State.doubleSpawnActive = false;
+      }
+    });
+  }
+  function pickBugType() {
+    const pool = ['NORMAL'];
+    if (State.score >= BUG_UNLOCK.ZIGZAG) pool.push('ZIGZAG');
+    if (State.score >= BUG_UNLOCK.FREEZE) pool.push('FREEZE');
+    if (State.score >= BUG_UNLOCK.ERRATIC) pool.push('ERRATIC');
+    if (State.score >= BUG_UNLOCK.SLOW) pool.push('SLOW');
+    if (State.score >= BUG_UNLOCK.BIG) pool.push('BIG');
+    if (State.score >= BUG_UNLOCK.DRAIN) pool.push('DRAIN');
+    if (State.score >= BUG_UNLOCK.BOMB) pool.push('BOMB');
+    return pool[Math.floor(Math.random() * pool.length)];
+  }
+  function createItem(W) {
+    const isBug = Math.random() < CATCH_BUG_RATE;
+    if (!isBug) {
+      const isBuff = Math.random() < BUFF_DROP_RATE;
+      if (isBuff) {
+        const buffType = BUFF_KEYS[Math.floor(Math.random() * BUFF_KEYS.length)];
+        return { x: Math.random() * (W - 30) + 10, y: 0, type: 'BUFF', buffType,
+          speed: Math.random() * CATCH_SPEED_VAR + CATCH_BASE_SPEED, size: 12 };
+      }
+      return { x: Math.random() * (W - 30) + 10, y: 0, type: 'LUA',
+        speed: Math.random() * CATCH_SPEED_VAR + CATCH_BASE_SPEED, size: 12 };
+    }
+    const bugType = pickBugType();
+    const item = { x: Math.random() * (W - 30) + 10, y: 0, type: 'BUG', bugType,
+      speed: Math.random() * CATCH_SPEED_VAR + CATCH_BASE_SPEED, size: 12 };
+    if (bugType === 'ZIGZAG') { item.zigDir = Math.random() < 0.5 ? -1 : 1; item.zigTimer = 0; }
+    if (bugType === 'ERRATIC') { item.vx = (Math.random() - 0.5) * 2.5; item.changeTimer = 0; }
+    if (bugType === 'BIG') { item.size = 22; item.speed *= 1.3; }
+    return item;
+  }
+  function drawItem(item, now) {
+    if (item.type === 'LUA') {
+      ctx.save(); ctx.shadowBlur = 8; ctx.shadowColor = '#00ff66';
+      ctx.fillStyle = '#00ff66';
+      ctx.font = '11px "JetBrains Mono", monospace';
+      ctx.fillText('Lua', item.x, item.y); ctx.restore();
+    } else if (item.type === 'BUFF') {
+      const def = BUFFS[item.buffType];
+      const pulse = 0.7 + 0.3 * Math.sin(now / 150);
+      ctx.save(); ctx.shadowBlur = 14 * pulse; ctx.shadowColor = def.color;
+      ctx.fillStyle = def.color;
+      ctx.font = 'bold 12px "JetBrains Mono", monospace';
+      ctx.fillText('Lua', item.x, item.y);
+      ctx.fillText('★', item.x + 22, item.y - 4); ctx.restore();
+    } else if (item.type === 'BUG') {
+      const bugStyle = {
+        NORMAL: { color: '#ff2a2a', size: 12 }, ZIGZAG: { color: '#ff2a2a', size: 13 },
+        ERRATIC: { color: '#ff5c5c', size: 13 }, BIG: { color: '#ff0044', size: 22 },
+        FREEZE: { color: '#5ce1e6', size: 13 }, SLOW: { color: '#ff7a3c', size: 13 },
+        DRAIN: { color: '#c98bff', size: 13 }, BOMB: { color: '#ffffff', size: 14 },
+      };
+      const style = bugStyle[item.bugType] || bugStyle.NORMAL;
+      ctx.save();
+      ctx.shadowBlur = item.bugType === 'BOMB' ? 12 : 0;
+      ctx.shadowColor = style.color; ctx.fillStyle = style.color;
+      ctx.font = `${style.size}px "JetBrains Mono", monospace`;
+      ctx.fillText('👾', item.x, item.y); ctx.restore();
+    }
+  }
+  function runCatchGame() {
+    if (State.currentGame !== 2) return;
+    const W = canvas._logicalW, H = canvas._logicalH;
+    const now = performance.now();
+    expireBuffs(now); renderBuffBar(now);
+    ctx.fillStyle = '#000'; ctx.fillRect(0, 0, W, H);
+    if (State.slowMoActive) { ctx.fillStyle = 'rgba(92,225,230,0.05)'; ctx.fillRect(0, 0, W, H); }
+    if (now < State.frozenUntil) { ctx.fillStyle = 'rgba(92,225,230,0.10)'; ctx.fillRect(0, 0, W, H); }
+    if (State.voidActive) {
+      const grad = ctx.createLinearGradient(0, H - 24, 0, H);
+      grad.addColorStop(0, 'rgba(184,102,255,0)');
+      grad.addColorStop(1, 'rgba(184,102,255,0.65)');
+      ctx.fillStyle = grad; ctx.fillRect(0, H - 24, W, 24);
+      ctx.strokeStyle = '#b866ff'; ctx.lineWidth = 2;
+      ctx.shadowBlur = 10; ctx.shadowColor = '#b866ff';
+      ctx.beginPath(); ctx.moveTo(0, H - 2); ctx.lineTo(W, H - 2); ctx.stroke();
+      ctx.shadowBlur = 0;
+    }
+    State.basket.x += State.basket.dir;
+    const bw = getBasketWidth();
+    if (State.basket.x < 0) State.basket.x = 0;
+    if (State.basket.x > W - bw) State.basket.x = W - bw;
+    if (State.shieldCharges > 0) {
+      ctx.save(); ctx.shadowBlur = 14; ctx.shadowColor = '#dddddd';
+      ctx.strokeStyle = 'rgba(220,220,220,0.8)'; ctx.lineWidth = 1.5;
+      ctx.strokeRect(State.basket.x - 3, H - BASKET_BOTTOM_OFFSET - 6, bw + 6, BASKET_HEIGHT + 10);
+      ctx.restore();
+    }
+    ctx.fillStyle = (State.basketWidthMult > 1) ? '#66ff8c' : '#ff2a2a';
+    ctx.shadowBlur = (State.basketWidthMult > 1) ? 8 : 0;
+    ctx.shadowColor = '#66ff8c';
+    ctx.fillRect(State.basket.x, H - BASKET_BOTTOM_OFFSET, bw, BASKET_HEIGHT);
+    ctx.shadowBlur = 0;
+    const spawnInterval = State.doubleSpawnActive ? CATCH_SPAWN_MS / 2 : CATCH_SPAWN_MS;
+    if (now - State.lastSpawn > spawnInterval) {
+      State.catchItems.push(createItem(W)); State.lastSpawn = now;
+    }
+    const slowMoMult = State.slowMoActive ? 0.45 : 1;
+    const basketCenter = State.basket.x + bw / 2;
+    for (let i = State.catchItems.length - 1; i >= 0; i--) {
+      const item = State.catchItems[i];
+      if (State.magnetActive && (item.type === 'LUA' || item.type === 'BUFF')) {
+        item.x += (basketCenter - (item.x + 6)) * 0.04;
+      }
+      item.y += item.speed * slowMoMult;
+      if (item.type === 'BUG') {
+        if (item.bugType === 'ZIGZAG') {
+          item.zigTimer += 1;
+          if (item.zigTimer % 20 === 0) item.zigDir *= -1;
+          item.x += item.zigDir * 1.8;
+          if (item.x < 0) { item.x = 0; item.zigDir = 1; }
+          if (item.x > W - 14) { item.x = W - 14; item.zigDir = -1; }
+        } else if (item.bugType === 'ERRATIC') {
+          item.changeTimer += 1;
+          if (item.changeTimer % 15 === 0) item.vx = (Math.random() - 0.5) * 3.5;
+          item.x += item.vx;
+          if (item.x < 0) { item.x = 0; item.vx = Math.abs(item.vx); }
+          if (item.x > W - 18) { item.x = W - 18; item.vx = -Math.abs(item.vx); }
+        }
+      }
+      drawItem(item, now);
+      const hb = item.size || 12;
+      const caught =
+        item.y >= H - BASKET_BOTTOM_OFFSET - 6 &&
+        item.y <= H - BASKET_BOTTOM_OFFSET + BASKET_HEIGHT + 6 &&
+        item.x + hb / 2 >= State.basket.x &&
+        item.x - hb / 2 <= State.basket.x + bw;
+      if (caught) {
+        if (item.type === 'LUA') {
+          State.score += 5 * State.scoreMultiplier;
+          if (State.score > Best.catchScore) {
+            Best.catchScore = State.score; saveNum(STORAGE.CATCH_BEST, Best.catchScore);
+          }
+        } else if (item.type === 'BUFF') applyBuff(item.buffType);
+        else if (item.type === 'BUG') {
+          handleBugHit(item.bugType);
+          if (State.lives <= 0) {
+            showGameOver('HẾT MẠNG TỒ̀I!', `SCORE: ${State.score} | BEST: ${Best.catchScore}`);
+            return;
+          }
+        }
+        State.catchItems.splice(i, 1);
+        updateLivesUI(); updateScoreUI();
+        statusText.innerText = `BEST: ${Best.catchScore}`;
+        continue;
+      }
+      if (item.y > H) {
+        if (item.type === 'LUA' || item.type === 'BUFF') {
+          if (State.voidActive) { item.y = H - 4; item.speed = 0; continue; }
+          if (item.type === 'LUA') {
+            State.lives--; updateLivesUI();
+            if (State.lives <= 0) {
+              showGameOver('BỎ LỠ LUA!', `SCORE: ${State.score} | BEST: ${Best.catchScore}`);
+              return;
+            }
+          }
+        }
+        State.catchItems.splice(i, 1);
+      }
+    }
+    State.loopId = requestAnimationFrame(runCatchGame);
+  }
+  function handleBugHit(bugType) {
+    const now = performance.now();
+    if (State.shieldCharges > 0) { State.shieldCharges -= 1; return; }
+    switch (bugType) {
+      case 'FREEZE': State.frozenUntil = now + 1500; State.basket.dir = 0; break;
+      case 'SLOW': State.slowDebuffUntil = now + 5000; State.basketSpeedMult = 0.6; break;
+      case 'DRAIN': State.score = Math.max(0, State.score - 15); updateScoreUI(); break;
+      case 'BOMB':
+        State.lives--;
+        State.activeBuffs = {}; State.scoreMultiplier = 1;
+        State.basketSpeedMult = 1; State.basketWidthMult = 1;
+        State.voidActive = false; State.slowMoActive = false;
+        State.magnetActive = false; State.doubleSpawnActive = false;
+        State.shieldCharges = 0;
+        break;
+      default: State.lives--;
+    }
+  }
+
+  // ========== GAME 3: FLAPPY ==========
+  function initFlappyGame() {
+    canvas.style.display = 'block';
+    resizeCanvas();
+    State.bird.x = 60; State.bird.y = 90; State.bird.velocity = 0;
+    State.pipes = []; State.gameStarted = false;
+    State.flames = []; State.lastFlameAt = 0; State.flapPhase = 0;
+    State.nextBlinkAt = performance.now() + 1500 + Math.random() * 2500;
+    State.blinkUntil = 0;
+    statusText.innerText = `BEST: ${Best.flappyScore}`;
+    canvas.onclick = handleFlappyInput;
+    runFlappyGame();
+  }
+  function handleFlappyInput() {
+    if (State.currentGame !== 3) return;
+    if (!State.gameStarted) {
+      State.gameStarted = true;
+      statusText.innerText = `BEST: ${Best.flappyScore}`;
+    }
+    State.bird.velocity = FLAPPY_FLAP;
+  }
+  function drawHero(cx, cy, rotation) {
+    const now = performance.now();
+    if (now >= State.nextBlinkAt && now >= State.blinkUntil) {
+      State.blinkUntil = now + 120;
+      State.nextBlinkAt = now + 1500 + Math.random() * 2500;
+    }
+    const isBlinking = now < State.blinkUntil;
+
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.rotate(rotation);
+
+    const half = HERO_SIZE / 2;
+    if (heroReady) {
+      ctx.imageSmoothingEnabled = false;
+      ctx.drawImage(heroImg, -half, -half, HERO_SIZE, HERO_SIZE);
+      if (isBlinking) {
+        ctx.fillStyle = '#5c2e7a';
+        ctx.fillRect(-half + 18, -half + 14, 6, 4);
+      }
+    } else {
+      ctx.imageSmoothingEnabled = false;
+      ctx.fillStyle = '#160b1f';
+      ctx.fillRect(-half + 10, -half + 8, 12, 2);
+      ctx.fillRect(-half + 8, -half + 10, 16, 2);
+      ctx.fillRect(-half + 6, -half + 12, 18, 8);
+      ctx.fillRect(-half + 8, -half + 20, 16, 2);
+      ctx.fillRect(-half + 10, -half + 22, 12, 2);
+      ctx.fillStyle = '#5c2e7a';
+      ctx.fillRect(-half + 12, -half + 10, 8, 2);
+      ctx.fillRect(-half + 10, -half + 12, 12, 6);
+      ctx.fillRect(-half + 12, -half + 18, 8, 2);
+      ctx.fillStyle = isBlinking ? '#5c2e7a' : '#d633b3';
+      ctx.fillRect(-half + 18, -half + 14, 6, 4);
+      if (!isBlinking) {
+        ctx.fillStyle = '#f4eef8';
+        ctx.fillRect(-half + 22, -half + 15, 1, 1);
+      }
+    }
+    ctx.restore();
+  }
+
+  function spawnTrailFlame(velocity) {
+    const intensity = Math.min(1, Math.abs(velocity) / 6);
+    const rot = Math.max(-0.45, Math.min(0.7, velocity * 0.12));
+    const localX = -HERO_SIZE / 2 + 1 + (Math.random() - 0.5) * 2;
+    const localY = (Math.random() - 0.5) * (HERO_SIZE * 0.55);
+    const cosR = Math.cos(rot), sinR = Math.sin(rot);
+    const wx = localX * cosR - localY * sinR;
+    const wy = localX * sinR + localY * cosR;
+    const baseSize = 3 + intensity * 5 + Math.random() * 1.5;
+    const vx = -(0.8 + intensity * 2.2) - Math.random() * 0.8;
+    const vy = -velocity * 0.15 + (Math.random() - 0.5) * 0.7;
+    State.flames.push({
+      x: State.bird.x + wx, y: State.bird.y + wy,
+      vx, vy, life: 1,
+      decay: 0.045 + (1 - intensity) * 0.04,
+      size: baseSize,
+      bright: 0.75 + Math.random() * 0.25,
+    });
+  }
+  function updateFlames() {
+    for (let i = State.flames.length - 1; i >= 0; i--) {
+      const f = State.flames[i];
+      f.x += f.vx; f.y += f.vy;
+      f.vx *= 0.96; f.vy *= 0.96;
+      f.life -= f.decay;
+      f.size *= 0.965;
+      if (f.life <= 0 || f.size < 0.5) State.flames.splice(i, 1);
+    }
+  }
+  function drawFlames() {
+    State.flames.forEach((f) => {
+      const a = Math.max(0, f.life) * f.bright;
+      const s = f.size;
+      ctx.fillStyle = `rgba(43,122,158,${a * 0.65})`;
+      ctx.fillRect(f.x - s / 2, f.y - s / 2, s, s);
+      ctx.fillStyle = `rgba(74,163,199,${a * 0.8})`;
+      const s2 = s * 0.75;
+      ctx.fillRect(f.x - s2 / 2, f.y - s2 / 2, s2, s2);
+      ctx.fillStyle = `rgba(133,212,240,${a * 0.9})`;
+      const s3 = s * 0.5;
+      ctx.fillRect(f.x - s3 / 2, f.y - s3 / 2, s3, s3);
+      ctx.fillStyle = `rgba(189,240,255,${a})`;
+      const s4 = s * 0.28;
+      ctx.fillRect(f.x - s4 / 2, f.y - s4 / 2, s4, s4);
+      if (f.life > 0.5) {
+        ctx.fillStyle = `rgba(224,250,255,${a * (f.life - 0.5) * 2})`;
+        const s5 = s * 0.14;
+        ctx.fillRect(f.x - s5 / 2, f.y - s5 / 2, s5, s5);
+      }
+    });
+  }
+  function runFlappyGame() {
+    if (State.currentGame !== 3) return;
+    const W = canvas._logicalW, H = canvas._logicalH;
+    const now = performance.now();
+
+    ctx.fillStyle = '#000';
+    ctx.fillRect(0, 0, W, H);
+
+    if (State.gameStarted) {
+      State.bird.velocity += FLAPPY_GRAVITY;
+      State.bird.y += State.bird.velocity;
+      State.flapPhase += 0.22;
+    } else {
+      State.flapPhase += 0.10;
+      ctx.fillStyle = '#aaa';
+      ctx.font = '11px "JetBrains Mono", monospace';
+      ctx.fillText('BẤM ĐỂ BAY', W / 2 - 40, H - 60);
+    }
+
+    if (State.pipes.length === 0 ||
+        State.pipes[State.pipes.length - 1].x < W - FLAPPY_PIPE_SPACING) {
+      const topH = Math.random() * 80 + 20;
+      State.pipes.push({ x: W, top: topH, gap: FLAPPY_PIPE_GAP, passed: false });
+    }
+
+    for (let i = State.pipes.length - 1; i >= 0; i--) {
+      const p = State.pipes[i];
+      if (State.gameStarted) p.x -= FLAPPY_PIPE_SPEED;
+      ctx.fillStyle = '#111';
+      ctx.strokeStyle = '#ff2a2a';
+      ctx.lineWidth = 1.5;
+      ctx.fillRect(p.x, 0, FLAPPY_PIPE_W, p.top);
+      ctx.strokeRect(p.x, 0, FLAPPY_PIPE_W, p.top);
+      ctx.fillRect(p.x, p.top + p.gap, FLAPPY_PIPE_W, H - (p.top + p.gap));
+      ctx.strokeRect(p.x, p.top + p.gap, FLAPPY_PIPE_W, H - (p.top + p.gap));
+
+      const br = State.bird.x + HERO_HITBOX / 2;
+      const bl = State.bird.x - HERO_HITBOX / 2;
+      const bt = State.bird.y - HERO_HITBOX / 2;
+      const bb = State.bird.y + HERO_HITBOX / 2;
+      if (br > p.x && bl < p.x + FLAPPY_PIPE_W) {
+        if (bt < p.top || bb > p.top + p.gap) {
+          showGameOver('TOANG RỒ̀I!',
+            `Đụng tường rồi cha nội! Điểm: ${State.score} | BEST: ${Best.flappyScore}`);
+          return;
+        }
+      }
+      if (p.x + FLAPPY_PIPE_W < bl && !p.passed) {
+        p.passed = true;
+        State.score += 1; updateScoreUI();
+        if (State.score > Best.flappyScore) {
+          Best.flappyScore = State.score;
+          saveNum(STORAGE.FLAPPY_BEST, Best.flappyScore);
+        }
+      }
+      if (p.x < -FLAPPY_PIPE_W - 10) State.pipes.splice(i, 1);
+    }
+
+    if (State.gameStarted) {
+      const speed = Math.abs(State.bird.velocity);
+      const spawnsPerFrame = 1 + Math.floor(Math.min(2, speed / 2.5));
+      const interval = Math.max(8, 22 - speed * 2);
+      if (now - State.lastFlameAt > interval) {
+        for (let k = 0; k < spawnsPerFrame; k++) {
+          spawnTrailFlame(State.bird.velocity);
+        }
+        State.lastFlameAt = now;
+      }
+    }
+    updateFlames();
+
+    const bobY = Math.sin(State.flapPhase) * 1.5;
+    const rot = Math.max(-0.45, Math.min(0.7, State.bird.velocity * 0.12));
+
+    drawFlames();
+    drawHero(State.bird.x, State.bird.y + bobY, rot);
+
+    if (State.bird.y > H || State.bird.y < 0) {
+      showGameOver('RƠI TỰ DO!',
+        `Bay kiểu gì cắm đầu xuống đất thế? SCORE: ${State.score} | BEST: ${Best.flappyScore}`);
+      return;
+    }
+
+    statusText.innerText = `BEST: ${Best.flappyScore}`;
+    State.loopId = requestAnimationFrame(runFlappyGame);
+  }
+
+  // ========== WIRE ==========
+  menuBtns.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const id = Number(btn.dataset.game);
+      // Nếu bấm vào tab đang active → không làm gì (tránh transition vô nghĩa)
+      if (id === State.currentGame && !State.isTransitioning) return;
+      switchGame(id);
+    });
+  });
+  startBtn.addEventListener('click', startCurrentGame);
+  cups.forEach((cup) => {
+    cup.addEventListener('click', () => selectCup(Number(cup.dataset.cupId)));
+  });
+  catchControls.querySelectorAll('.ctrl-btn').forEach((btn) => {
+    const dir = btn.dataset.dir === 'left' ? -1 : 1;
+    const start = (e) => { e.preventDefault(); moveBasket(dir); };
+    const stop = (e) => { e.preventDefault(); moveBasket(0); };
+    btn.addEventListener('mousedown', start);
+    btn.addEventListener('touchstart', start, { passive: false });
+    btn.addEventListener('mouseup', stop);
+    btn.addEventListener('mouseleave', stop);
+    btn.addEventListener('touchend', stop);
+    btn.addEventListener('touchcancel', stop);
+  });
+  window.addEventListener('keydown', (e) => {
+    if (State.currentGame === 2) {
+      if (e.code === 'ArrowLeft' || e.code === 'KeyA') moveBasket(-1);
+      if (e.code === 'ArrowRight' || e.code === 'KeyD') moveBasket(1);
+    }
+    if (State.currentGame === 3 && e.code === 'Space') {
+      e.preventDefault(); handleFlappyInput();
+    }
+  });
+  window.addEventListener('keyup', (e) => {
+    if (State.currentGame === 2) {
+      if (['ArrowLeft', 'ArrowRight', 'KeyA', 'KeyD'].includes(e.code)) moveBasket(0);
+    }
+  });
+
+  // ========== BOOT ==========
+  if (document.fonts && document.fonts.ready) {
+    document.fonts.ready.then(() => switchGame(1, true));
+  } else {
+    switchGame(1, true);
+  }
+})();
+</script>
 </body>
 </html>
